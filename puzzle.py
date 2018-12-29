@@ -53,7 +53,7 @@ class Crossword(object):
 	def getFixedMatches(self, rc, direction):
 		fixedWord = []
 		rotate = 'Right' if direction == 'Down' else 'Down'
-		start = self.getWord(rc, direction)
+		rc = self.getStart(rc, direction)
 		while True:
 			if '.' in self.getWord(rc, rotate):
 				fixedWord.append('.')
@@ -61,7 +61,8 @@ class Crossword(object):
 				fixedWord.append(self.get_cell(rc))
 			rc = self.transition(rc,direction)
 			if self.boundary(rc):
-				print(fixedWord)
+				print("Ran into a boundary: " + str(rc))
+				print("Fixed word: " + ''.join(fixedWord))
 				return ''.join(fixedWord)
 
 
@@ -258,11 +259,9 @@ class App:
 
 	def tab(self):
 		pos = self.selected
-		self._crossword.scan()
-		self.showTrouble()
 		cs = self.getSelection()
-		choices = self._crossword.getFixedMatches(self.selected, self.direction)
-		print(choices)
+		self._crossword.scan()
+		choices = match(self._crossword.getFixedMatches(self.selected, self.direction))
 		try:
 			self._tabi = self._tabi + 1 % len(choices)
 		except ZeroDivisionError:
@@ -275,9 +274,12 @@ class App:
 				s = self._crossword.transition(s, self.direction)
 		except IndexError:
 			print("Ran out of choices")
+			self._tabi = -1
 			pass
-		#self.selected = pos
-		#self.select()
+		self.selected = pos
+		self.select()
+		self._crossword.scan()
+		self.showTrouble()
 
 	def arrow(self, event):
 		r,c = self.selected
@@ -295,6 +297,8 @@ class App:
 		elif event.keysym == 'Tab':
 			self.tab()
 			return 'break'
+		elif event.state == 'Mod1' and event.keysym == 's':
+			save()
 
 	def run(self):
 		self.root.mainloop()
@@ -373,4 +377,6 @@ def run():
 	cw = Crossword(15,15)
 	App(cw).run()
 
+dict.append("AROUNDTHEWORLDA")
+dict.append("ADLROWEHTDNUORA")
 run()
